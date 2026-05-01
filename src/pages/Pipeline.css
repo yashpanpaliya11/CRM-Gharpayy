@@ -1,0 +1,34 @@
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+}
+
+.kanban-column {
+  min-width: 250px;
+  background-color: #f1f2f6;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #dfe4ea;
+}
+
+.kanban-card {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-left: 4px solid var(--accent-color);
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.kanban-card:hover {
+  border-color: var(--accent-color);
+  background-color: #f8f9fa;
+}
+
+.card-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
