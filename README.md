@@ -25,8 +25,7 @@ This system allows users to capture leads, track their progress through a sales 
 React UI connected to Firebase Firestore with real-time data synchronization.
 
 ## Live Demo
-
-(Add your deployed link)
+https://crmprototype1.netlify.app/dashboard
 
 ## Repository
 
