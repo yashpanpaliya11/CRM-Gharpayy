@@ -4,16 +4,27 @@ import Dashboard from './pages/Dashboard';
 import LeadsList from './pages/LeadsList';
 import AddLead from './pages/AddLead';
 import Pipeline from './pages/Pipeline';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, arrayUnion } from 'firebase/firestore';
 
-function App() {
+function AppContent() {
+  const { currentUser } = useAuth();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!currentUser) {
+      setLeads([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     const unsubscribe = onSnapshot(collection(db, 'leads'), (snapshot) => {
       const leadsData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -27,7 +38,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   const handleAddLead = async (newLead) => {
     try {
@@ -88,22 +99,45 @@ function App() {
     );
   });
 
-  if (loading) {
+  if (currentUser && loading) {
     return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#2d3436' }}>Loading CRM Data...</div>;
   }
 
   return (
-    <BrowserRouter>
-      <Layout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard leads={leads} />} />
-          <Route path="/leads" element={<LeadsList leads={filteredLeads} onUpdateLead={handleUpdateLead} onDeleteLead={handleDeleteLead} />} />
-          <Route path="/pipeline" element={<Pipeline leads={filteredLeads} onUpdateLead={handleUpdateLead} />} />
-          <Route path="/add-lead" element={<AddLead onAddLead={handleAddLead} />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/signup" element={!currentUser ? <Signup /> : <Navigate to="/dashboard" replace />} />
+      
+      <Route
+        path="/*"
+        element={
+          currentUser ? (
+            <Layout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard leads={leads} />} />
+                <Route path="/leads" element={<LeadsList leads={filteredLeads} onUpdateLead={handleUpdateLead} onDeleteLead={handleDeleteLead} />} />
+                <Route path="/pipeline" element={<Pipeline leads={filteredLeads} onUpdateLead={handleUpdateLead} />} />
+                <Route path="/add-lead" element={<AddLead onAddLead={handleAddLead} />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

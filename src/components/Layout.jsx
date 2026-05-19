@@ -1,8 +1,11 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Layout.css';
 
 export default function Layout({ children, searchQuery, onSearchChange }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, currentUser } = useAuth();
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -10,6 +13,15 @@ export default function Layout({ children, searchQuery, onSearchChange }) {
     { path: '/pipeline', label: 'Pipeline' },
     { path: '/add-lead', label: 'Add Lead' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error("Failed to log out:", error);
+    }
+  };
 
   return (
     <div className="layout top-nav-layout">
@@ -27,7 +39,7 @@ export default function Layout({ children, searchQuery, onSearchChange }) {
           </nav>
         </div>
 
-        <div className="nav-right">
+        <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <div className="search-bar">
             <input 
               type="text" 
@@ -37,6 +49,11 @@ export default function Layout({ children, searchQuery, onSearchChange }) {
               onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
+          {currentUser && (
+            <button onClick={handleLogout} className="btn-secondary" style={{ padding: '8px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+              Log Out
+            </button>
+          )}
         </div>
       </header>
 
