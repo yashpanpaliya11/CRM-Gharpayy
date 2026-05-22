@@ -24,11 +24,21 @@ export default function LeadDetailsModal({ lead, onClose }) {
     return 'bg-secondary-light';
   };
 
-  // Sort timeline newest first
-  const sortedTimeline = [...timeline].sort((a, b) => new Date(b.time) - new Date(a.time));
+  const getDateFromTime = (time) => {
+    if (!time) return new Date(0);
+    if (typeof time.toDate === 'function') return time.toDate();
+    if (time.seconds) return new Date(time.seconds * 1000);
+    const parsed = new Date(time);
+    if (isNaN(parsed.getTime())) return new Date(0);
+    return parsed;
+  };
 
-  const formatTime = (timeString) => {
-    const date = new Date(timeString);
+  // Sort timeline newest first
+  const sortedTimeline = [...timeline].sort((a, b) => getDateFromTime(b.time) - getDateFromTime(a.time));
+
+  const formatTime = (time) => {
+    const date = getDateFromTime(time);
+    if (date.getTime() === 0) return 'Unknown Date';
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 

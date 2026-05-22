@@ -10,7 +10,7 @@
   align-items: center;
   padding: 0 32px;
   height: 72px;
-  background-color: #2d3436;
+  background-color: #980000;
   color: white;
   border-bottom: 1px solid var(--border-color);
   position: sticky;
@@ -33,7 +33,7 @@
 .logo-icon {
   width: 28px;
   height: 28px;
-  background-color: #0984e3;
+  background-color: #090909;
   border-radius: 6px;
 }
 
@@ -69,7 +69,7 @@
 }
 
 .nav-item.active {
-  background-color: #0984e3;
+  background-color: #45a8f4;
   color: white;
 }
 
@@ -94,7 +94,7 @@
 
 .search-input:focus {
   background-color: rgba(255, 255, 255, 0.15);
-  border-color: #0984e3;
+  border-color: #45a8f4;
   outline: none;
 }
 
