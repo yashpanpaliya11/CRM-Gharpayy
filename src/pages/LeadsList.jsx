@@ -47,7 +47,6 @@ export default function LeadsList({ leads, onUpdateLead, onDeleteLead }) {
               <tr key={lead.id}>
                 <td>
                   <div className="td-name">
-                    <div className="lead-avatar-small">{lead.name.charAt(0)}</div>
                     <div>
                       <div className="td-title">{lead.name}</div>
                       <div className="td-subtitle">{lead.email}</div>
