@@ -1,0 +1,267 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "visitDate",
+              "name": "visitDate",
+              "value": "={{ $json.visitDate }}",
+              "type": "string"
+            },
+            {
+              "id": "assignedTo",
+              "name": "assignedTo",
+              "value": "={{ $json.assignedTo }}",
+              "type": "string"
+            },
+            {
+              "id": "leadId",
+              "name": "leadId",
+              "value": "={{ $json._id }}",
+              "type": "string"
+            },
+            {
+              "id": "timeline",
+              "name": "timeline",
+              "value": "={{ $json.timeline }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10ba7513-4901-4197-969d-638f09c7ac57",
+      "name": "Extract Lead Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "upsert",
+        "projectId": "gharpayy-b7b23",
+        "collection": "leads",
+        "updateKey": "leadId",
+        "columns": "timeline"
+      },
+      "id": "6b7184ef-ad57-417d-9249-61604107b6bd",
+      "name": "Update Lead Timeline",
+      "type": "n8n-nodes-base.googleFirebaseCloudFirestore",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        -64
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "Ttquw9ddx4jMuyDr",
+          "name": "Google Firebase Cloud Firestore account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "leadId",
+              "name": "leadId",
+              "value": "={{ $(\"Extract Lead Fields\").item.json.leadId }}",
+              "type": "string"
+            },
+            {
+              "id": "timeline",
+              "name": "timeline",
+              "value": "={{ $(\"Extract Lead Fields\").item.json.timeline.concat([{ action: \"Reminder email sent\", time: $now.toISO() }]) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4551a489-1ae4-4617-a977-1a3cd668caa4",
+      "name": "Prepare Timeline Update",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Visit Reminder - Upcoming Appointment",
+        "message": "=Hello {{ $json.name }},<br><br>This is a reminder that a visit is scheduled soon.<br><br><strong>Lead Name:</strong> {{ $json.name }}<br><strong>Visit Date:</strong> {{ $json.visitDate }}<br><strong>Assigned To:</strong> {{ $json.assignedTo }}<br><br>Please be prepared.<br><br>Best regards,<br>Your CRM Team",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "CRM Reminder System"
+        }
+      },
+      "id": "eb522e89-d59f-4658-8ea2-8cf57058ad41",
+      "name": "Send Reminder Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -64
+      ],
+      "webhookId": "49a3d311-5154-4ce5-bfb2-28ebedad6dde",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kJLkAST2oknwakTd",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "getAll",
+        "projectId": "gharpayy-b7b23",
+        "collection": "leads",
+        "returnAll": true
+      },
+      "id": "2ca28eca-a356-484e-923e-90942185aaba",
+      "name": "Fetch Leads from Firestore",
+      "type": "n8n-nodes-base.googleFirebaseCloudFirestore",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        -64
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "Ttquw9ddx4jMuyDr",
+          "name": "Google Firebase Cloud Firestore account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "4c79138f-b048-490c-9053-90358e3796a7",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const visitDate = $input.item.json.visitDate;\nconst timeline = $input.item.json.timeline || [];\n\nif (!visitDate) {\n  return null;\n}\n\n// Check if reminder email already sent\nconst emailAlreadySent = timeline.some(event => event.action === \"Reminder email sent\");\nif (emailAlreadySent) {\n  return null;\n}\n\nconst visit = new Date(visitDate);\nconst now = new Date();\n\n// Calculate time difference in hours\nconst hoursDiff = (visit - now) / (1000 * 60 * 60);\n\n// Send email if visit is within 48 hours (2 days) from now\nif (hoursDiff > 0 && hoursDiff <= 48) {\n  return $input.item;\n}\n\nreturn null;"
+      },
+      "id": "5843d9fd-7545-43f4-973b-9506611940d6",
+      "name": "Filter Upcoming Visits (48 hours)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -64
+      ]
+    }
+  ],
+  "connections": {
+    "Extract Lead Fields": {
+      "main": [
+        [
+          {
+            "node": "Filter Upcoming Visits (48 hours)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Timeline Update": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reminder Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Timeline Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Leads from Firestore": {
+      "main": [
+        [
+          {
+            "node": "Extract Lead Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Fetch Leads from Firestore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Upcoming Visits (48 hours)": {
+      "main": [
+        [
+          {
+            "node": "Send Reminder Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "294fd1f74d530859a4d534a92c09e0881a75ba127a00aa74101a598ed1e1576d"
+  }
+}
