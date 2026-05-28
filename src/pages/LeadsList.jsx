@@ -8,26 +8,14 @@ export default function LeadsList({ leads, onUpdateLead, onDeleteLead }) {
 
   const handleExport = () => {
     const headers = "Name,Phone,Email,Status,Assigned To,Visit Date\n";
-    const csvContent = "data:text/csv;charset=utf-8," + headers + leads.map(l => 
-      `${l.name || ''},${l.phone || ''},${l.email || ''},${l.status || ''},${l.assignedTo || ''},${l.visitDate || ''}`
-    ).join("\n");
     
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "leads_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
   };
 
   return (
     <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">All Leads</h1>
-        <div className="header-actions" style={{display: 'flex', gap: '1rem'}}>
-          <button className="btn btn-secondary" onClick={handleExport}>Export CSV</button>
-        </div>
       </div>
 
       <div className="table-container glass-panel">

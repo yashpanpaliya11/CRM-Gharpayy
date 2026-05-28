@@ -6,7 +6,7 @@ export default function Pipeline({ leads, onUpdateLead }) {
   const [selectedLead, setSelectedLead] = useState(null);
   const columns = ['New', 'Contacted', 'Interested', 'Visit Scheduled', 'Closed'];
 
-  // Optional: implement drag and drop later. For now, it just displays in columns.
+ 
 
   return (
     <div className="page-container pipeline-page">
